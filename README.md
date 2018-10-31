@@ -20,8 +20,8 @@ Build a map-based application, which lets the user see geo-based data on a map a
 
 Fill in (either in English, or in Slovak):
 
-**Application description**: `<fill in>`
+**Application description**: `Bike sharing locator - diplays information about WhiteBike bikesharing in Bratislava - current bike count, nearest stands and nearest bike paths`
 
-**Data source**: `<fill in>`
+**Data source**: `https://www.openstreetmap.org/`
 
-**Technologies used**: `<fill in>`
+**Technologies used**: `Flask, Leaflet, Bootstrap, jQuery`

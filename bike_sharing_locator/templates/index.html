@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bike sharing navigator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+</head>
+
+<body>
+    <nav class="navbar navbar-light bg-light">
+      <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='Bicycle-512.png') }}" width="30" height="30" class="d-inline-block align-top" alt="">
+        Bike sharing locator
+      </a>
+    </nav>
+
+
+    <div class="row">
+        <div class="col-3">
+            <div id="search_area" class="container">
+                <h5><img src="{{ url_for('static', filename='research.svg') }}" style="width: 1em" /> Search</h5>
+                <label>Search by street name<br> <input id="search_bar" type="text"/><button class="btn" onclick="getByStreetName()">Go!</button></label>
+                <div id="side_info" class=""></div>
+
+                <div class="" style="height: 200px;">
+                    <h5><img src="{{ url_for('static', filename='settings.svg') }}" style="width: 1em" /> Options</h5>
+                    <input type="checkbox" id="with_bikes_only" /> Search only for stands with 1 and more bikes (takes more time)
+                </div>
+                <div class="">
+
+                    <h5><img src="{{ url_for('static', filename='question.svg') }}" style="width: 1em" /> Help</h5>
+                    <ul>
+                        <li>Left-click on one of the markers to display info about stand</li>
+                        <li>Right-click on one of the markers to display nearest bike paths</li>
+                        <li>Click anywhere in the map to display stands within 2 km radius</li>
+                        <li>Use search bar to find stands near streets within 2 km radius</li>
+                    </ul>
+                </div>
+            </div>
+         </div>
+
+
+        <div class="col-9">
+            <div id="map" style="width: 98%; height: 700px"></div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/lfunctions.js') }}"></script>
+</body>
+</html>
