@@ -1,3 +1,5 @@
+Martin Hauskrecht
+
 # Overview
 
 This application shows bicycle stands of WhiteBike bike sharing in Bratislava on a map. Most important feautres are:
