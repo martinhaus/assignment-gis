@@ -38,6 +38,14 @@ def get_nearest_stands_by_street(street_name):
 def get_nearest_paths(stand_id):
     return jsonify(wb.get_nearest_bike_paths(stand_id))
 
+@app.route('/districts/<district_name>')
+def get_city_district_by_name(district_name):
+    return jsonify(wb.get_city_district_by_name(district_name))
+
+@app.route('/stands/district/<district_name>')
+def get_stands_by_district_name(district_name):
+    return jsonify(wb.get_stands_by_city_district(district_name))
+
 
 if __name__ == '__main__':
     app.run()

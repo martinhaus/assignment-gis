@@ -1,11 +1,3 @@
-*This is a documentation for a fictional project, just to show you what I expect. Notice a few key properties:*
-- *no cover page, really*
-- *no copy&pasted assignment text*
-- *no code samples*
-- *concise, to the point, gets me a quick overview of what was done and how*
-- *I don't really care about the document length*
-- *I used links where appropriate*
-
 # Overview
 
 This application shows bicycle stands of WhiteBike bike sharing in Bratislava on a map. Most important feautres are:
@@ -18,12 +10,18 @@ Overview of the application
 
 ![Screenshot](overview.png)
 
-The application is built with Flask framework and Leaflet. Additionaly, Bootstrap and jQuery were used to operate the frontend part of the project. The backend part provides several REST API endpoints to get data in GeoJSON format, later to be displayed using Leaflet.
+![Screenshot](after_click.png)
+
+![Screenshot](paths.png)
+
+![Screenshot](district.png)
+
+The application is built with Flask framework and MapBox SDK. Additionaly, Bootstrap and jQuery were used to operate the frontend part of the project. The backend part provides several REST API endpoints to get data in GeoJSON format, later to be displayed using Leaflet.
 
 
 # Frontend
 
-The frontend application is a static HTML page (`index.html`), which shows a leaflet.js widget. It uses jQuery to connect to REST API and get GeoJSON data to be displayed on the map using Leaflet.
+The frontend application is a static HTML page (`index.html`), which shows a MapBox widget. It uses jQuery to connect to REST API and get GeoJSON data to be displayed on the map using MapBox SDK.
 
 The markers on the map are modified using custom icons to distinguish stands with bikes and those without them. 
 
@@ -36,6 +34,60 @@ The backend application is written in Flask framework and is responsible for pro
 ## Data
 
 Data about WhiteBike stands is coming from Open Street Maps. I exported area aprox. the size of Bratislava (due to the fact that WhiteBikes are operational only in Bratislava). I imported it using `osm2pgsql` tool. GeoJSON is genereted directly in queries using `st_asgeojson` function. Some results are then altered and filtered by accessing WhiteBikes API and filtering empty stands.
+
+### Query samples
+
+**Selecting all stands from WhiteBikes bikesharing**
+
+```
+SELECT osm_id, name, st_asgeojson(way) from planet_osm_point  where amenity like 'bicycle_rental' and operator like 'WhiteBikes';
+```
+
+
+**Selecting stands within 2km from given street**
+
+```
+SELECT osm_id, name, distance FROM (
+WITH RECURSIVE streets AS (
+SELECT osm_id, name, way FROM planet_osm_line
+WHERE upper(name) = upper('Medená'))
+SELECT DISTINCT ON (p.osm_id) p.osm_id, p.name, p.way,  trunc(st_distance(st_setsrid(p.way, 4326), st_setsrid(l.way, 4326))) AS distance FROM planet_osm_point p, streets l
+where p.amenity = 'bicycle_rental' AND p.operator = 'WhiteBikes' AND ST_DWithin(st_setsrid(p.way, 4326), st_setsrid(l.way, 4326), 2000)) unordered_stands
+ORDER BY distance;
+```
+
+
+**Selecting stands within city district**
+```
+SELECT DISTINCT point.osm_id, point.name
+FROM planet_osm_polygon pol, planet_osm_point point
+WHERE upper(pol.name) = upper('staré mesto') AND point.operator = 'WhiteBikes' and point.amenity like 'bicycle_rental' AND st_intersects(pol.way, point.way)
+
+```
+
+**Selecting stands closest to given coordinates**
+```
+SELECT osm_id, name, trunc(ST_Distance(way, st_transform( st_setsrid(st_makepoint(17.112, 48.143), 4326), 3857))) AS distance
+FROM planet_osm_point
+WHERE ST_DWithin(way, st_transform( st_setsrid(st_makepoint(17.112, 48.143), 4326), 3857), 2000)
+AND amenity = 'bicycle_rental' and operator like 'WhiteBikes'
+ORDER BY distance;
+```
+
+### Indexes
+
+Based on created queries, I created these indexes. Use of them resulted in aprox. 11 times faster query execution (55 ms -> 5ms)
+
+```
+CREATE INDEX point_idx ON planet_osm_point(osm_id, name, operator, amenity);
+CREATE INDEX line_idx ON planet_osm_line(osm_id, name);
+CREATE INDEX line_bicycle_idx ON planet_osm_line(name, bicycle);
+CREATE INDEX line_name_upper_idx ON planet_osm_line(upper(name));
+
+
+CREATE INDEX line_gix ON planet_osm_line USING GIST(way);
+CREATE INDEX point_gix ON planet_osm_point USING GIST(way);
+```
 
 ## Api
 
@@ -177,4 +229,37 @@ List of GeoJSON objects representing nearest bike paths
     ]
     .....
 ```
+
+**Find bike stands within district**
+
+`GET /stands/district/Karlova Ves`
+
+
+```
+[
+    [
+        4921143816,
+        "MATFYZ"
+    ],
+    [
+        4921143818,
+        "BINARIUM"
+    ],
+    [
+        4921143820,
+        "ATRIAKY"
+    ],
+    [
+        4921145321,
+        "KARLOVKA"
+    ],
+    [
+        4921145322,
+        "JURIGOVO"
+    ]
+]
+```
+
+
+
 
