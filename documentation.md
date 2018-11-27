@@ -6,6 +6,7 @@ This application shows bicycle stands of WhiteBike bike sharing in Bratislava on
 - displaying all stands in Bratislava on a map with option to see how many bikes are docked at the stand.
 - displaying stands closest to selected location (with option to display only stands with bikes).
 - displaying stands closest to selected street (with option to display only stands with bikes).
+- displaying stands within given city district
 - displaying bike paths closest to selected stand.
 
 Overview of the application
@@ -25,9 +26,15 @@ The application is built with Flask framework and MapBox SDK. Additionaly, Boots
 
 The frontend application is a static HTML page (`index.html`), which shows a MapBox widget. It uses jQuery to connect to REST API and get GeoJSON data to be displayed on the map using MapBox SDK.
 
-The markers on the map are modified using custom icons to distinguish stands with bikes and those without them. 
+
+## Custom map features
+
+The markers on the map are modified using custom icons to distinguish stands with bikes and those without them. MapBox street map is used instead of classic openstreetmap theme.
+
+
 
 All relevant frontend code is in `lfunctions.js` which is referenced from `index.html`.
+
 
 # Backend
 
@@ -46,7 +53,7 @@ SELECT osm_id, name, st_asgeojson(way) from planet_osm_point  where amenity like
 ```
 
 
-**Selecting stands within 2km from given street**
+**Selecting stands with distance from given street within 2km radius**
 
 ```
 SELECT osm_id, name, distance FROM (
@@ -67,13 +74,21 @@ WHERE upper(pol.name) = upper('staré mesto') AND point.operator = 'WhiteBikes' 
 
 ```
 
-**Selecting stands closest to given coordinates**
+**Selecting stands closest to given coordinates with distance from the given coordinates**
 ```
 SELECT osm_id, name, trunc(ST_Distance(way, st_transform( st_setsrid(st_makepoint(17.112, 48.143), 4326), 3857))) AS distance
 FROM planet_osm_point
 WHERE ST_DWithin(way, st_transform( st_setsrid(st_makepoint(17.112, 48.143), 4326), 3857), 2000)
 AND amenity = 'bicycle_rental' and operator like 'WhiteBikes'
 ORDER BY distance;
+```
+
+**Selecting 10 clocest bike paths to given stand within 2km radius**
+
+```
+SELECT st_asgeojson(st_transform(l.way, 4326)) FROM planet_osm_point p, planet_osm_line l
+WHERE p.name = 'SAFKO' AND l.bicycle = 'designated' AND ST_DWithin(st_setsrid(p.way, 4326), st_setsrid(l.way, 4326), 2000)
+LIMIT 10;
 ```
 
 ### Indexes
